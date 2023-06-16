@@ -85,7 +85,7 @@ const deleteUser = async (req, res) => {
   // console.log(user);
   // console.log(admin);
   res.send(user);
-  res.send(admin);
+  // res.send(admin);
 };
 
 module.exports = {
