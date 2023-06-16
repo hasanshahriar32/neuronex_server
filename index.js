@@ -32,4 +32,3 @@ app.use(errorHandler);
 app.listen(port, () => {
   console.log(`Neuronex is running: ${port}`);
 });
-//setup complete
