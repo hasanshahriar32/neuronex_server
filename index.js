@@ -5,6 +5,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 const mongoose = require("mongoose");
 const UserRoute = require("./Routes/UserRoute");
+const PromptRoute = require("./Routes/PromptRoute");
 const { notFound, errorHandler } = require("./MiddleWare/errMiddleWare");
 
 // middleware
@@ -25,6 +26,7 @@ app.get("/", (req, res) => {
   res.send("neuronex is running");
 });
 app.use("/user", UserRoute);
+app.use("/generate", PromptRoute);
 // routes end
 
 app.use(notFound);

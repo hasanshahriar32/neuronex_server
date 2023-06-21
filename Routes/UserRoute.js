@@ -14,7 +14,7 @@ const {
 
 router.post("/", createUser);
 router.get("/user", getUser);
-router.get("/all", allUser); // adminProtect,
+router.get("/all", allUser); // adminProtect, /user/all
 router.get("/:id", singleUser);
 router.delete("/:id", deleteUser); //protect,
 router.patch("/:id", updateUser); //protect,
