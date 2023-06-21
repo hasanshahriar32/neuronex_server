@@ -9,6 +9,7 @@ const PromptRoute = require("./Routes/PromptRoute");
 const { notFound, errorHandler } = require("./MiddleWare/errMiddleWare");
 
 // middleware
+//new
 app.use(cors());
 app.use(express.json());
 
