@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const UserRoute = require("./Routes/UserRoute");
 const PromptRoute = require("./Routes/PromptRoute");
 const { notFound, errorHandler } = require("./MiddleWare/errMiddleWare");
+const { swaggerServe, swaggerSetup } = require("./Documentation/specs.js");
 
 // middleware
 //new
@@ -23,10 +24,10 @@ async function main() {
 }
 
 // routes start
-app.get("/", (req, res) => {
-  res.send("neuronex is running");
-});
+
+app.use("/", swaggerServe, swaggerSetup);
 app.use("/user", UserRoute);
+app.use("/api-docs", swaggerServe, swaggerSetup);
 app.use("/generate", PromptRoute);
 // routes end
 
