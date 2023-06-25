@@ -34,21 +34,8 @@ const generateResponse = asyncHandler(async (req, res) => {
     max_tokens: 600,
     stream: true,
   });
-
   const chunks = [];
   const reader = responseStream.getReader();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-
-    // Process and save the chunk to the database
-    const chunkText = new TextDecoder().decode(value);
-    console.log(chunkText);
-    // await database.saveChunk(chunkText);
-    // Assuming you have a function in the "database" module to save the chunk
-  }
 
   // Send each chunk to the frontend using Server-Sent Events
   res.writeHead(200, {
@@ -57,17 +44,30 @@ const generateResponse = asyncHandler(async (req, res) => {
     Connection: "keep-alive",
   });
 
-  chunks.forEach((chunk, index) => {
-    const chunkText = new TextDecoder().decode(chunk);
-    res.write(`data: ${chunkText}\n\n`);
+  let index = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    // Process and save the chunk to the database asynchronously
+    const chunkText = new TextDecoder().decode(value);
+    // database.saveChunk(chunkText).catch((error) => {
+    //   console.error("Error saving chunk to database:", error);
+    // });
+
+    // Send the chunk to the frontend
+    const event = `data: ${chunkText}\n\n`;
+    res.write(event);
 
     // Simulate a delay between sending chunks (adjust the delay as needed)
     setTimeout(() => {
       if (index === chunks.length - 1) {
         res.write("event: end\n\n"); // Signal the end of the stream
       }
-    }, index * 100); // Delay each chunk by 1 second
-  });
+    }, index * 1); // Delay each chunk by 1 second
+
+    index++;
+  }
 
   res.end();
 });
