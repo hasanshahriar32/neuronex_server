@@ -24,15 +24,18 @@ async function main() {
 }
 
 // routes start
-
-app.use("/", swaggerServe, swaggerSetup);
+app.get("/", (req, res) => {
+  res.send(`neuronex is running on ${port}. documentation is at /api-docs`);
+});
 app.use("/user", UserRoute);
-app.use("/api-docs", swaggerServe, swaggerSetup);
 app.use("/generate", PromptRoute);
+app.use("/api-docs", swaggerServe, swaggerSetup);
+
 // routes end
 
 app.use(notFound);
 app.use(errorHandler);
+
 app.listen(port, () => {
   console.log(`Neuronex is running: ${port}`);
 });

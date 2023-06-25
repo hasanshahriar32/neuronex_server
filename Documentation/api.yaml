@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Neuronex API Documentation
-  description: Written and tested by [Mr. Hasan](https://github.com/hasanshahriar32).<br /><br /><b> [Visit Site](https://neuronex.vercel.app)</b>
+  description: Written and tested by [Shahriar Hasan](https://github.com/hasanshahriar32).<br /><br /><b> [Visit Site](https://neuronex.vercel.app)</b>
   version: 1.0.0
 servers:
   - url: https://neuronex-server-test.vercel.app
