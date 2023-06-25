@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "index.js",
@@ -19,6 +20,11 @@
       }
     }
   ],
+  "functions": {
+    "generateResponse": {
+      "maxDuration": 30
+    }
+  },
   "edge": {
     "defaultConfig": "your-vercel-edge-config-file.js"
   }
