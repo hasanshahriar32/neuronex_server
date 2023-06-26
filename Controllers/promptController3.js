@@ -1,9 +1,11 @@
 const OpenAiStream = require("./openAiStream");
-const { Configuration } = require("openai");
+const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const openai = new OpenAIApi(configuration);
 
 const generateResponse3 = async (req, res) => {
   const {
@@ -53,6 +55,22 @@ const generateResponse3 = async (req, res) => {
 
   // Start sending the chunks
   sendChunk();
+};
+
+module.exports = (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return;
+  }
+
+  return generateResponse3(req, res);
 };
 
 module.exports = { generateResponse3 };
