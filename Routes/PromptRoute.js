@@ -10,6 +10,6 @@ const { generateResponse } = require("../Controllers/promptController");
 // const {} = require("../Controllers/userController");
 
 router.post("/", generateResponse2);
-router.get("/prompt", generateResponse);
+router.post("/prompt", generateResponse);
 
 module.exports = router;
