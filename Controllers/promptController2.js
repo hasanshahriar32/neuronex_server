@@ -79,5 +79,4 @@ const generateResponse2 = asyncHandler(async (req, res) => {
 
 module.exports = {
   generateResponse2,
-  config,
 };
