@@ -68,7 +68,7 @@ const generateResponse = asyncHandler(async (req, res) => {
       if (index === chunks.length - 1) {
         res.write("event: end\n\n"); // Signal the end of the stream
       }
-    }, index * 1); // Delay each chunk by 1 second
+    }, index * 0); // Delay each chunk by 1 second
 
     index++;
   }
