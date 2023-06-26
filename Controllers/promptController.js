@@ -9,6 +9,10 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
+const config = {
+  runtime: "edge",
+};
+
 const generateResponse = asyncHandler(async (req, res) => {
   const userPrompt = req.body;
   const {
@@ -74,4 +78,5 @@ const generateResponse = asyncHandler(async (req, res) => {
 
 module.exports = {
   generateResponse,
+  config,
 };
