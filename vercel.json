@@ -1,11 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "index.js",
-      "use": "@vercel/node"
-    }
-  ],
+
   "routes": [
     {
       "src": "/(.*)",
@@ -20,11 +15,13 @@
       }
     }
   ],
+
   "functions": {
-    "generateResponse": {
+    "api/generate/**/*.js": {
       "maxDuration": 30
     }
   },
+
   "edge": {
     "defaultConfig": "your-vercel-edge-config-file.js"
   }

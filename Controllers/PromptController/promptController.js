@@ -16,16 +16,34 @@ const generateResponse = asyncHandler(async (req, res) => {
     sessionId,
     additionalInstruction,
     assistanceLevel,
-    uid,
   } = userPrompt;
   const sessionExists = await Session.findOne({ sessionId });
-  if (sessionExists) {
+  if (!sessionExists) {
     res.status(422).json({
-      error: "session already exists",
-      sessionExists,
+      error: "session doesn't exists",
     });
-    throw new Error("Session already exists");
+    throw new Error("Session doesn't  exists");
   }
+
+  // get the session's message array length
+  const serial = sessionExists.messages.length + 1;
+
+  // push the user's prompt to the session's message array
+
+  const incomingData = await Session.findOneAndUpdate(
+    { sessionId },
+    {
+      $push: {
+        messages: {
+          type: "incoming",
+          message: question,
+          serial,
+        },
+      },
+    }
+  );
+
+  // generate the response
 
   const response = await openai.createCompletion({
     model: "text-davinci-003",
@@ -44,7 +62,35 @@ const generateResponse = asyncHandler(async (req, res) => {
 
   console.log(response.data.choices, "response");
 
-  res.send(response.data.choices);
+  // push the response to the session's message array
+
+  const generatedData = await Session.findOneAndUpdate(
+    { sessionId },
+    {
+      $push: {
+        messages: {
+          type: "outgoing",
+          message: response.data.choices[0].text,
+          serial: serial + 1,
+        },
+      },
+    }
+  );
+
+  // send the response to the user
+
+  res.status(200).json([
+    {
+      type: "incoming",
+      message: question,
+      serial,
+    },
+    {
+      type: "outgoing",
+      message: response.data.choices[0].text,
+      serial: serial + 1,
+    },
+  ]);
 });
 
 module.exports = {
