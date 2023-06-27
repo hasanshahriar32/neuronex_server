@@ -50,11 +50,13 @@ const generateResponse = asyncHandler(async (req, res) => {
 
     prompt: `
       Subject: ${subjectSelection} ,
-      Topic or Question: ${question},
+      Prompt: ${question},
       Assistance Level: ${assistanceLevel},
       Additional Details: ${additionalInstruction},
+
+      focus on responding to Prompt!!
       
-      Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Please explain the concept and offer step-by-step guidance.
+      Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist.
       `,
     temperature: 0.1,
     max_tokens: 600,
