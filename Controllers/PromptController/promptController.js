@@ -35,7 +35,7 @@ const generateResponse = asyncHandler(async (req, res) => {
     {
       $push: {
         messages: {
-          type: "incoming",
+          type: "outgoing",
           message: question,
           serial,
         },
@@ -69,7 +69,7 @@ const generateResponse = asyncHandler(async (req, res) => {
     {
       $push: {
         messages: {
-          type: "outgoing",
+          type: "incoming",
           message: response.data.choices[0].text,
           serial: serial + 1,
         },
@@ -81,12 +81,12 @@ const generateResponse = asyncHandler(async (req, res) => {
 
   res.status(200).json([
     {
-      type: "incoming",
+      type: "outgoing",
       message: question,
       serial,
     },
     {
-      type: "outgoing",
+      type: "incoming",
       message: response.data.choices[0].text,
       serial: serial + 1,
     },
