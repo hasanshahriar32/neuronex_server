@@ -1,6 +1,11 @@
 {
   "version": 2,
-
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
@@ -14,11 +19,5 @@
         "Cache-Control": "s-maxage=0"
       }
     }
-  ],
-
-  "functions": {
-    "api/generate/**/*.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
