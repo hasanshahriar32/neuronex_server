@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const { Configuration, OpenAIApi } = require("openai");
+const Session = require("../../Model/sessionModel");
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,6 +18,14 @@ const generateResponse = asyncHandler(async (req, res) => {
     assistanceLevel,
     uid,
   } = userPrompt;
+  const sessionExists = await Session.findOne({ sessionId });
+  if (sessionExists) {
+    res.status(422).json({
+      error: "session already exists",
+      sessionExists,
+    });
+    throw new Error("Session already exists");
+  }
 
   const response = await openai.createCompletion({
     model: "text-davinci-003",
