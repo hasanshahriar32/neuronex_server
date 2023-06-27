@@ -20,9 +20,5 @@
     "api/generate/**/*.js": {
       "maxDuration": 30
     }
-  },
-
-  "edge": {
-    "defaultConfig": "your-vercel-edge-config-file.js"
   }
 }
