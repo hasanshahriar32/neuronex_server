@@ -81,9 +81,27 @@ const singleSession = asyncHandler(async (req, res) => {
   }
 });
 
+// make  a session favorite
+const makeFavorite = asyncHandler(async (req, res) => {
+  const sessionDetail = req.body;
+  const sessionId = sessionDetail?.sessionId;
+  const uid = sessionDetail?.uid;
+  const session = await Session.findOneAndUpdate(
+    { sessionId, uid },
+    { isBookmarked: true }
+  );
+  if (session) {
+    res.status(201).send(session);
+  } else {
+    res.status(400);
+    throw new Error("Invalid session data");
+  }
+});
+
 module.exports = {
   generateSession,
   allSession,
   favoriteSession,
   singleSession,
+  makeFavorite,
 };
