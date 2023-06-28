@@ -47,8 +47,8 @@ const allSession = asyncHandler(async (req, res) => {
   const session = await Session.find({ uid })
     .skip(skipIndex)
     .limit(limit)
-    .sort({ createdAt: -1 });
-  // .select("-messages");
+    .sort({ createdAt: -1 })
+    .select("-messages");
   res.send(session);
 });
 
