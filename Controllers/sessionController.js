@@ -6,7 +6,7 @@ const Session = require("../Model/sessionModel");
 
 const generateSession = asyncHandler(async (req, res) => {
   const userPrompt = req.body;
-  const { sessionId, sessionTitle, uid } = userPrompt;
+  const { sessionId, subjectSelection, sessionTitle, uid } = userPrompt;
   const sessionExists = await Session.findOne({ sessionId });
   if (sessionExists) {
     res.status(422).json({
@@ -18,18 +18,20 @@ const generateSession = asyncHandler(async (req, res) => {
   const session = await Session.create({
     sessionId,
     sessionTitle,
+    subjectSelection,
     uid,
     isBookmarked: false,
     messages: [],
   });
   if (session) {
     res.status(201).json({
-      _id: session._id,
-      sessionId: session.sessionId,
-      sessionTitle: session.sessionTitle,
-      uid: session.uid,
-      isBookmarked: session.isBookmarked,
-      messages: session.messages,
+      _id: session?._id,
+      sessionId: session?.sessionId,
+      sessionTitle: session?.sessionTitle,
+      subjectSelection: session?.subjectSelection,
+      uid: session?.uid,
+      isBookmarked: session?.isBookmarked,
+      messages: session?.messages,
     });
   } else {
     res.status(400);
@@ -86,9 +88,10 @@ const makeFavorite = asyncHandler(async (req, res) => {
   const sessionDetail = req.body;
   const sessionId = sessionDetail?.sessionId;
   const uid = sessionDetail?.uid;
+  const favouuriteState = Session.findOne({ sessionId, uid });
   const session = await Session.findOneAndUpdate(
     { sessionId, uid },
-    { isBookmarked: true }
+    { isBookmarked: !favouuriteState?.isBookmarked }
   );
   if (session) {
     res.status(201).send(session);
