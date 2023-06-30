@@ -38,6 +38,7 @@ const generateResponse = asyncHandler(async (req, res) => {
           type: "outgoing",
           message: question,
           serial,
+          sessionId: sessionId,
         },
       },
     }
@@ -74,6 +75,7 @@ const generateResponse = asyncHandler(async (req, res) => {
           type: "incoming",
           message: response.data.choices[0].text,
           serial: serial + 1,
+          sessionId: sessionId,
         },
       },
     }
