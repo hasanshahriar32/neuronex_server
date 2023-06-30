@@ -6,7 +6,14 @@ const Session = require("../Model/sessionModel");
 
 const generateSession = asyncHandler(async (req, res) => {
   const userPrompt = req.body;
-  const { sessionId, subjectSelection, sessionTitle, uid } = userPrompt;
+  const {
+    sessionId,
+    subjectSelection,
+    sessionTitle,
+    uid,
+    additionalInstruction,
+    assistanceLevel,
+  } = userPrompt;
   const sessionExists = await Session.findOne({ sessionId });
   if (sessionExists) {
     res.status(422).json({
@@ -16,10 +23,12 @@ const generateSession = asyncHandler(async (req, res) => {
     throw new Error("Session already exists");
   }
   const session = await Session.create({
+    uid,
     sessionId,
     sessionTitle,
+    assistanceLevel,
     subjectSelection,
-    uid,
+    additionalInstruction,
     isBookmarked: false,
     messages: [],
   });
