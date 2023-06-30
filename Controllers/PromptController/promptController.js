@@ -47,7 +47,7 @@ const generateResponse = asyncHandler(async (req, res) => {
   // generate the response
 
   const response = await openai.createCompletion({
-    model: "gpt-3.5-turbo",
+    model: "text-davinci-003",
 
     prompt: `
       Subject: ${subjectSelection} ,
