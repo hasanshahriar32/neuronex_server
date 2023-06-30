@@ -29,6 +29,8 @@ const generateSession = asyncHandler(async (req, res) => {
       sessionId: session?.sessionId,
       sessionTitle: session?.sessionTitle,
       subjectSelection: session?.subjectSelection,
+      additionalInstruction: session?.additionalInstruction,
+      assistanceLevel: session?.assistanceLevel,
       uid: session?.uid,
       isBookmarked: session?.isBookmarked,
       messages: session?.messages,
