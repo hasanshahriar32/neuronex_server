@@ -94,21 +94,25 @@ const singleSession = asyncHandler(async (req, res) => {
   }
 });
 
-// make  a session favorite
 const makeFavorite = asyncHandler(async (req, res) => {
   const sessionDetail = req.body;
   const sessionId = sessionDetail?.sessionId;
   const uid = sessionDetail?.uid;
-  const favouuriteState = Session.findOne({ sessionId, uid });
-  const session = await Session.findOneAndUpdate(
-    { sessionId, uid },
-    { isBookmarked: !favouuriteState?.isBookmarked }
-  );
-  if (session) {
-    res.status(201).send(session);
+  const favoriteState = await Session.findOne({ sessionId, uid }); // Await the result of findOne
+
+  if (favoriteState) {
+    const session = await Session.findOneAndUpdate(
+      { sessionId },
+      { isBookmarked: !favoriteState.isBookmarked }
+    );
+    if (session) {
+      res.status(201).send({ isBookmarked: session.isBookmarked }); // Access the updated bookmarked state from 'session'
+    } else {
+      res.status(400);
+      throw new Error("Invalid session data");
+    }
   } else {
-    res.status(400);
-    throw new Error("Invalid session data");
+    res.status(404).send({ error: "Session not found" });
   }
 });
 

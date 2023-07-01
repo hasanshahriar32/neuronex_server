@@ -12,7 +12,7 @@ const {
 router.post("/all", allSession);
 router.post("/favorite", favoriteSession);
 router.post("/single", singleSession);
-router.post("/add-fav", makeFavorite);
+router.post("/favorite/switch", makeFavorite);
 router.post("/", generateSession);
 
 module.exports = router;
