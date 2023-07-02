@@ -9,14 +9,14 @@ const {
   updateUser,
   singleUser,
 } = require("../Controllers/userController");
-// const { protect } = require("../MiddleWare/authMiddleWare");
-// const { adminProtect } = require("../MiddleWare/adminMiddleWare");
+const { protect } = require("../Middleware/authMiddleWare");
+const { adminProtect } = require("../Middleware/adminMiddleWare");
 
 router.post("/", createUser);
 router.get("/user", getUser);
-router.get("/all", allUser); // adminProtect, /user/all
+router.get("/all", adminProtect, allUser); // adminProtect, /user/all
 router.get("/:id", singleUser);
-router.delete("/:id", deleteUser); //protect,
-router.patch("/:id", updateUser); //protect,
+router.delete("/:id", protect, deleteUser); //protect,
+router.patch("/:id", protect, updateUser); //protect,
 
 module.exports = router;
