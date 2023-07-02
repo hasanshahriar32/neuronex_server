@@ -10,14 +10,6 @@
     {
       "src": "/(.*)",
       "dest": "index.js"
-    },
-    {
-      "src": "/generate/(.*)",
-      "methods": ["POST"],
-      "dest": "index.js",
-      "headers": {
-        "Cache-Control": "s-maxage=0"
-      }
     }
   ]
 }
