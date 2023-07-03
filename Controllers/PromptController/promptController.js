@@ -36,8 +36,11 @@ const generateResponse = asyncHandler(async (req, res) => {
     messages: [
       {
         role: "system",
-        content:
-          "focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Not mandatorily, if possible or necessary or required, provide additional resources to assist the student. (Links, youtube videos, wikipedia reference etc.)",
+        content: `focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Not mandatorily, if possible or necessary or required, provide additional resources to assist the student. (Links, youtube videos, wikipedia reference etc.) ${
+          serial < 3
+            ? "most importantly, give a suitable title named Title: at the beginning of response."
+            : ""
+        }`,
       },
       {
         role: "user",
@@ -49,7 +52,7 @@ const generateResponse = asyncHandler(async (req, res) => {
       `,
       },
     ],
-    max_tokens: 600,
+    max_tokens: 800,
     temperature: 0.5,
     presence_penalty: 0,
     frequency_penalty: 0,
@@ -60,6 +63,27 @@ const generateResponse = asyncHandler(async (req, res) => {
   const totalCost =
     response.data.usage.prompt_tokens * 0.0015 +
     response.data.usage.completion_tokens * 0.002;
+
+  // Extract the title from the response
+  let title = "";
+  const responseContent = response.data.choices[0].message.content;
+  const titleMatch = responseContent.match(/Title: ([^\n]+)/);
+  if (titleMatch) {
+    title = titleMatch[1];
+  }
+
+  console.log(title, "title");
+
+  // if serial is less than 3, then set the title to Session model's sessionTitle
+
+  if (serial < 3 && title !== "") {
+    const sessionTitle = await Session.findOneAndUpdate(
+      { sessionId },
+      {
+        sessionTitle: title,
+      }
+    );
+  }
 
   // push the user's prompt to the session's message array
 
@@ -104,6 +128,8 @@ const generateResponse = asyncHandler(async (req, res) => {
       serial,
       sessionId: sessionId,
       tokenUsage: response.data.usage.prompt_tokens,
+      //if serial is greater than 3, then send the title
+      ...(serial < 3 && { title }),
     },
     {
       type: "incoming",
@@ -111,6 +137,7 @@ const generateResponse = asyncHandler(async (req, res) => {
       serial: serial + 1,
       sessionId: sessionId,
       tokenUsage: response.data.usage.completion_tokens,
+      ...(serial < 3 && { title }),
     },
   ]);
 });
