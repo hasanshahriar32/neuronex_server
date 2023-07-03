@@ -2,12 +2,14 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  generateResponse3,
-} = require("../Controllers/PromptController/promptController3");
-const {
   generateResponse,
 } = require("../Controllers/PromptController/promptController");
-const { generateTest } = require("../Controllers/PromptController/promptTest");
+const {
+  generateResponse3,
+} = require("../Controllers/PromptController/test/promptController3");
+const {
+  generateTest,
+} = require("../Controllers/PromptController/test/promptTest");
 
 // const {} = require("../Controllers/userController");
 

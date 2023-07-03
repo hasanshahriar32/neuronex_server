@@ -46,24 +46,32 @@ const generateResponse = asyncHandler(async (req, res) => {
 
   // generate the response
 
-  const response = await openai.createCompletion({
-    model: "text-davinci-003",
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
 
-    prompt: `
+    messages: [
+      {
+        role: "system",
+        content:
+          "focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist.",
+      },
+      {
+        role: "user",
+        content: `
       Subject: ${subjectSelection} ,
       Prompt: ${question},
       Assistance Level: ${assistanceLevel},
-      Additional Details: ${additionalInstruction},
-
-      focus on responding to Prompt!!
-      
-      Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist.
+      Additional Details: ${additionalInstruction}, 
       `,
-    temperature: 0.1,
+      },
+    ],
     max_tokens: 600,
+    temperature: 0.5,
+    presence_penalty: 0,
+    frequency_penalty: 0,
   });
 
-  console.log(response.data.choices, "response");
+  console.log(response.data.choices[0].message.content, "response");
 
   // push the response to the session's message array
 
@@ -73,7 +81,7 @@ const generateResponse = asyncHandler(async (req, res) => {
       $push: {
         messages: {
           type: "incoming",
-          message: response.data.choices[0].text,
+          message: response.data.choices[0].message.content,
           serial: serial + 1,
           sessionId: sessionId,
         },
@@ -92,7 +100,7 @@ const generateResponse = asyncHandler(async (req, res) => {
     },
     {
       type: "incoming",
-      message: response.data.choices[0].text,
+      message: response.data.choices[0].message.content,
       serial: serial + 1,
       sessionId: sessionId,
     },
