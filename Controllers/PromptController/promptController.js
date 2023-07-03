@@ -28,22 +28,6 @@ const generateResponse = asyncHandler(async (req, res) => {
   // get the session's message array length
   const serial = sessionExists.messages.length + 1;
 
-  // push the user's prompt to the session's message array
-
-  const incomingData = await Session.findOneAndUpdate(
-    { sessionId },
-    {
-      $push: {
-        messages: {
-          type: "outgoing",
-          message: question,
-          serial,
-          sessionId: sessionId,
-        },
-      },
-    }
-  );
-
   // generate the response
 
   const response = await openai.createChatCompletion({
@@ -72,6 +56,27 @@ const generateResponse = asyncHandler(async (req, res) => {
   });
 
   console.log(response.data.choices[0].message.content, "response");
+  console.log("Token usage:", response.data.usage);
+  const totalCost =
+    response.data.usage.prompt_tokens * 0.0015 +
+    response.data.usage.completion_tokens * 0.002;
+
+  // push the user's prompt to the session's message array
+
+  const incomingData = await Session.findOneAndUpdate(
+    { sessionId },
+    {
+      $push: {
+        messages: {
+          type: "outgoing",
+          message: question,
+          serial,
+          sessionId: sessionId,
+          tokenUsage: response.data.usage.prompt_tokens,
+        },
+      },
+    }
+  );
 
   // push the response to the session's message array
 
@@ -84,6 +89,7 @@ const generateResponse = asyncHandler(async (req, res) => {
           message: response.data.choices[0].message.content,
           serial: serial + 1,
           sessionId: sessionId,
+          tokenUsage: response.data.usage.completion_tokens,
         },
       },
     }
@@ -97,12 +103,14 @@ const generateResponse = asyncHandler(async (req, res) => {
       message: question,
       serial,
       sessionId: sessionId,
+      tokenUsage: response.data.usage.prompt_tokens,
     },
     {
       type: "incoming",
       message: response.data.choices[0].message.content,
       serial: serial + 1,
       sessionId: sessionId,
+      tokenUsage: response.data.usage.completion_tokens,
     },
   ]);
 });
