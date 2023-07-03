@@ -53,7 +53,7 @@ const generateResponse = asyncHandler(async (req, res) => {
       {
         role: "system",
         content:
-          "focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist.",
+          "focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. if possible or necessary, provide additional resources to assist the student. (Links, videos, etc.)",
       },
       {
         role: "user",
