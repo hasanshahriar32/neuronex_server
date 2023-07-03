@@ -10,8 +10,8 @@ const {
   singleAdmin,
   deleteUser,
 } = require("../Controllers/adminController");
-const { protect } = require("../Middleware/authMiddleWare");
-const { adminProtect } = require("../Middleware/adminMiddleWare");
+const { protect } = require("../MiddleWare/authMiddleWare");
+const { adminProtect } = require("../MiddleWare/adminMiddleWare");
 
 router.post("/", adminProtect, createAdmin);
 // router.get("/", getUser);
