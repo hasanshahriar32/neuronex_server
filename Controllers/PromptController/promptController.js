@@ -142,6 +142,55 @@ const generateResponse = asyncHandler(async (req, res) => {
   ]);
 });
 
+const generateSuggestions = asyncHandler(async (req, res) => {
+  const { message, sessionId } = req.body;
+
+  if (!message) {
+    res.status(400).json({
+      error: "Message is required.",
+    });
+    return;
+  }
+
+  // const formattedMessage = message.replace(/\n/g, "");
+
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content: `Give some search suggestions based on the message in 5 lines. each line should be separated by a new line. and each line should be within 30 characters.`,
+      },
+      {
+        role: "user",
+        content: `
+---------------message starts here---------------
+${message}
+---------------message ends here---------------`,
+      },
+    ],
+    max_tokens: 200,
+    temperature: 0.5,
+    presence_penalty: 0,
+    frequency_penalty: 0,
+  });
+
+  console.log(response.data.choices[0].message.content, "response");
+  console.log("Token usage:", response.data.usage);
+
+  const totalCost =
+    response.data.usage.prompt_tokens * 0.0015 +
+    response.data.usage.completion_tokens * 0.002;
+
+  res.status(200).json({
+    message: response.data.choices[0].message.content,
+    tokenUsage: response.data.usage.completion_tokens,
+    totalCost,
+    sessionId,
+  });
+});
+
 module.exports = {
   generateResponse,
+  generateSuggestions,
 };

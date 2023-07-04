@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   generateResponse,
+  generateSuggestions,
 } = require("../Controllers/PromptController/promptController");
 const {
   generateResponse3,
@@ -15,6 +16,7 @@ const {
 
 router.post("/", generateResponse3);
 router.post("/prompt", generateResponse);
+router.post("/suggestions", generateSuggestions);
 router.get("/test", generateTest);
 
 module.exports = router;
