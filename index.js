@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const UserRoute = require("./Routes/UserRoute");
 const SessionRoute = require("./Routes/SessionRoute");
 const PromptRoute = require("./Routes/PromptRoute");
+const PackageRoute = require("./Routes/PackageRoute");
 const AdminRoute = require("./Routes/AdminRoute");
 const PaymentRoute = require("./Routes/PaymentRoute");
 const { notFound, errorHandler } = require("./MiddleWare/errMiddleWare");
@@ -35,6 +36,7 @@ app.use("/session", SessionRoute);
 app.use("/generate", PromptRoute);
 app.use("/admin", AdminRoute);
 app.use("/payment", PaymentRoute);
+app.use("/package", PackageRoute);
 app.use("/api-docs", swaggerServe, swaggerSetup);
 
 // routes end
