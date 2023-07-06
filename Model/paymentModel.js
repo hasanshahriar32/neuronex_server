@@ -3,12 +3,11 @@ const mongoose = require("mongoose");
 const paymentSchema = mongoose.Schema(
   {
     paymentID: { type: String, trim: true, required: true, unique: true },
-    package: {
-      type: Object,
-      trim: true,
-      required: true,
-    },
-    status: { type: String, trim: true, required: true, default: "pending" },
+    plan: { type: String, trim: true },
+    price: { type: Number, trim: true, required: true },
+    estimatedGeneration: { type: Number, trim: true },
+    validity: { type: Number, trim: true },
+    status: { type: String, trim: true, default: "pending" },
   },
   {
     timestamps: true,

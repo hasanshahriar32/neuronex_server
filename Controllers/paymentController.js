@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
-const pricingData = require("../data/pricing.json");
+const Package = require("../Model/packageModel");
+const Payment = require("../Model/paymentModel");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const createIntent = asyncHandler(async (req, res) => {
@@ -21,37 +22,34 @@ const createIntent = asyncHandler(async (req, res) => {
   });
 });
 const resolveIntent = asyncHandler(async (req, res) => {
-  const { packageId } = req.body;
+  console.log(req.body);
+  const { _id, paymentID } = req.body;
   // search for the package and get amount
-  const package = Package.findById(packageId);
+  const package = await Package.findById(_id);
   // console.log(package);
-  // const amount = package.price;
-  const amount = 30;
   // Create a PaymentIntent with the order amount and currency
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: amount,
-    currency: "bdt",
-    automatic_payment_methods: {
-      enabled: true,
-    },
-  });
+
   const payment = await Payment.create({
-    paymentID: "",
-    package,
-    status: "pending",
-    clientSecret: paymentIntent.client_secret,
+    paymentID,
+    plan: package?.plan,
+    price: package?.price,
+    estimatedGeneration: package?.estimatedGeneration,
+    validity: package?.validity,
+    status: "Confirmed",
   });
   if (payment) {
     res.status(201).json({
       _id: payment._id,
       paymentID: payment.paymentID,
-      package: payment.package,
+      plan: payment.plan,
+      price: payment.price,
+      estimatedGeneration: payment.estimatedGeneration,
+      validity: payment.validity,
       status: payment.status,
-      clientSecret: paymentIntent.client_secret,
     });
   } else {
     res.status(400);
     throw new Error("Invalid user data");
   }
 });
-module.exports = { createIntent };
+module.exports = { createIntent, resolveIntent };
