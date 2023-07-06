@@ -23,14 +23,16 @@ const createIntent = asyncHandler(async (req, res) => {
 });
 const resolveIntent = asyncHandler(async (req, res) => {
   console.log(req.body);
-  const { _id, paymentID } = req.body;
+  const { _id, paymentID, uid } = req.body;
   // search for the package and get amount
   const package = await Package.findById(_id);
   // console.log(package);
   // Create a PaymentIntent with the order amount and currency
 
   const payment = await Payment.create({
+    uid,
     paymentID,
+    packageID,
     plan: package?.plan,
     price: package?.price,
     estimatedGeneration: package?.estimatedGeneration,
@@ -40,6 +42,8 @@ const resolveIntent = asyncHandler(async (req, res) => {
   if (payment) {
     res.status(201).json({
       _id: payment._id,
+      uid: payment.uid,
+      packageID: payment.packageID,
       paymentID: payment.paymentID,
       plan: payment.plan,
       price: payment.price,
