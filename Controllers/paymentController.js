@@ -30,7 +30,8 @@ const resolveIntent = asyncHandler(async (req, res) => {
   console.log(package);
   // Create a PaymentIntent with the order amount and currency
 
-  const payment = await Payment.create({
+if (package?._id){
+    const payment = await Payment.create({
     uid,
     paymentID,
     packageID: _id,
@@ -54,7 +55,8 @@ const resolveIntent = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error("Invalid user data");
+    throw new Error("Invalid package data");
   }
+}
 });
 module.exports = { createIntent, resolveIntent };
