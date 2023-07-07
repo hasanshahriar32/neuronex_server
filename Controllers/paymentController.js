@@ -153,8 +153,17 @@ const resolveIntent = asyncHandler(async (req, res) => {
         transactionModelExists.currentBalance += payment.price;
 
         // Update validity only if it increases
-        if (payment.validity > transactionModelExists.validity) {
-          transactionModelExists.validity = payment.validity;
+        const existingValidity = transactionModelExists.validity.getTime(); // Get the existing validity in milliseconds
+
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0); // Set today's time to 00:00:00 UTC
+
+        const newValidity = new Date(
+          today.getTime() + payment.validity * 24 * 60 * 60 * 1000
+        ); // Calculate the new validity by adding payment validity to the current date
+
+        if (newValidity.getTime() > existingValidity) {
+          transactionModelExists.validity = newValidity;
         }
 
         const updatedTransactionModelExists =
