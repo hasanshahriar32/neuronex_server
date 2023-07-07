@@ -32,7 +32,7 @@ const resolveIntent = asyncHandler(async (req, res) => {
   const payment = await Payment.create({
     uid,
     paymentID,
-    packageID,
+    packageID: _id,
     plan: package?.plan,
     price: package?.price,
     estimatedGeneration: package?.estimatedGeneration,
