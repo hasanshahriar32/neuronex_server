@@ -28,6 +28,63 @@ const generateResponse = asyncHandler(async (req, res) => {
   // get the session's message array length
   const serial = sessionExists.messages.length + 1;
 
+  // generate the response
+
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+
+    messages: [
+      {
+        role: "system",
+        content: `focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Not mandatorily, if possible or necessary or required, provide additional resources to assist the student. (Links, youtube videos, wikipedia reference etc.) ${
+          serial < 3
+            ? "most importantly, give a suitable title named Title: at the beginning of response."
+            : ""
+        }`,
+      },
+      {
+        role: "user",
+        content: `
+      Subject: ${subjectSelection} ,
+      Prompt: ${question},
+      Assistance Level: ${assistanceLevel},
+      Additional Details: ${additionalInstruction}, 
+      `,
+      },
+    ],
+    max_tokens: 800,
+    temperature: 0.5,
+    presence_penalty: 0,
+    frequency_penalty: 0,
+  });
+
+  console.log(response.data.choices[0].message.content, "response");
+  console.log("Token usage:", response.data.usage);
+  const totalCost =
+    response.data.usage.prompt_tokens * 0.0015 +
+    response.data.usage.completion_tokens * 0.002;
+
+  // Extract the title from the response
+  let title = "";
+  const responseContent = response.data.choices[0].message.content;
+  const titleMatch = responseContent.match(/Title: ([^\n]+)/);
+  if (titleMatch) {
+    title = titleMatch[1];
+  }
+
+  console.log(title, "title");
+
+  // if serial is less than 3, then set the title to Session model's sessionTitle
+
+  if (serial < 3 && title !== "") {
+    const sessionTitle = await Session.findOneAndUpdate(
+      { sessionId },
+      {
+        sessionTitle: title,
+      }
+    );
+  }
+
   // push the user's prompt to the session's message array
 
   const incomingData = await Session.findOneAndUpdate(
@@ -39,31 +96,11 @@ const generateResponse = asyncHandler(async (req, res) => {
           message: question,
           serial,
           sessionId: sessionId,
+          tokenUsage: response.data.usage.prompt_tokens,
         },
       },
     }
   );
-
-  // generate the response
-
-  const response = await openai.createCompletion({
-    model: "text-davinci-003",
-
-    prompt: `
-      Subject: ${subjectSelection} ,
-      Prompt: ${question},
-      Assistance Level: ${assistanceLevel},
-      Additional Details: ${additionalInstruction},
-
-      focus on responding to Prompt!!
-      
-      Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist.
-      `,
-    temperature: 0.1,
-    max_tokens: 600,
-  });
-
-  console.log(response.data.choices, "response");
 
   // push the response to the session's message array
 
@@ -73,9 +110,10 @@ const generateResponse = asyncHandler(async (req, res) => {
       $push: {
         messages: {
           type: "incoming",
-          message: response.data.choices[0].text,
+          message: response.data.choices[0].message.content,
           serial: serial + 1,
           sessionId: sessionId,
+          tokenUsage: response.data.usage.completion_tokens,
         },
       },
     }
@@ -89,16 +127,70 @@ const generateResponse = asyncHandler(async (req, res) => {
       message: question,
       serial,
       sessionId: sessionId,
+      tokenUsage: response.data.usage.prompt_tokens,
+      //if serial is greater than 3, then send the title
+      ...(serial < 3 && { title }),
     },
     {
       type: "incoming",
-      message: response.data.choices[0].text,
+      message: response.data.choices[0].message.content,
       serial: serial + 1,
       sessionId: sessionId,
+      tokenUsage: response.data.usage.completion_tokens,
+      ...(serial < 3 && { title }),
     },
   ]);
 });
 
+const generateSuggestions = asyncHandler(async (req, res) => {
+  const { message, sessionId } = req.body;
+
+  if (!message) {
+    res.status(400).json({
+      error: "Message is required.",
+    });
+    return;
+  }
+
+  // const formattedMessage = message.replace(/\n/g, "");
+
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content: `Give some search suggestions based on the message in 5 lines. each line should be separated by a new line. and each line should be within 30 characters.`,
+      },
+      {
+        role: "user",
+        content: `
+---------------message starts here---------------
+${message}
+---------------message ends here---------------`,
+      },
+    ],
+    max_tokens: 200,
+    temperature: 0.5,
+    presence_penalty: 0,
+    frequency_penalty: 0,
+  });
+
+  console.log(response.data.choices[0].message.content, "response");
+  console.log("Token usage:", response.data.usage);
+
+  const totalCost =
+    response.data.usage.prompt_tokens * 0.0015 +
+    response.data.usage.completion_tokens * 0.002;
+
+  res.status(200).json({
+    message: response.data.choices[0].message.content,
+    tokenUsage: response.data.usage.completion_tokens,
+    totalCost,
+    sessionId,
+  });
+});
+
 module.exports = {
   generateResponse,
+  generateSuggestions,
 };
