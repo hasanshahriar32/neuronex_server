@@ -27,7 +27,7 @@ const resolveIntent = asyncHandler(async (req, res) => {
   const { _id, paymentID, uid } = req.body;
   // search for the package and get amount
   const package = await Package.findById(_id);
-  // console.log(package);
+  console.log(package);
   // Create a PaymentIntent with the order amount and currency
 
   const payment = await Payment.create({
