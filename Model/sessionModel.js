@@ -8,6 +8,7 @@ const sessionSchema = mongoose.Schema(
     assistanceLevel: { type: String, trim: true },
     uid: { type: String, trim: true, required: true },
     isBookmarked: { type: Boolean, trim: true, default: false },
+    sessionCost: { type: Number, trim: true, default: 0 },
     messages: {
       type: Array,
       default: [],

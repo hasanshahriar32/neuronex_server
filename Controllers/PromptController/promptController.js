@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const { Configuration, OpenAIApi } = require("openai");
 const Session = require("../../Model/sessionModel");
-
+const Transaction = require("../../Model/transactionModel");
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -16,6 +16,7 @@ const generateResponse = asyncHandler(async (req, res) => {
     sessionId,
     additionalInstruction,
     assistanceLevel,
+    uid,
   } = userPrompt;
   const sessionExists = await Session.findOne({ sessionId });
   if (!sessionExists) {
@@ -23,10 +24,59 @@ const generateResponse = asyncHandler(async (req, res) => {
       error: "session doesn't exists",
     });
     throw new Error("Session doesn't  exists");
+    return;
   }
 
   // get the session's message array length
   const serial = sessionExists.messages.length + 1;
+  const transaction = await Transaction.find({ uid }).select(
+    "-dailyUsed -transactions"
+  );
+  const currentBalance = transaction[0].currentBalance;
+  const validity = transaction[0].validity;
+  if (currentBalance < 0.006) {
+    res.status(403).json([
+      {
+        type: "outgoing",
+        message: question,
+        serial,
+        sessionId: sessionId,
+      },
+      {
+        type: "incoming",
+        message: "Low balance! Upgrade Plan",
+        serial: serial + 1,
+        sessionId: sessionId,
+      },
+    ]);
+    return;
+  }
+  if (currentBalance > 0.006) {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0); // Set today's time to 00:00:00 UTC
+
+    const newValidity = new Date(today.getTime());
+    if (newValidity.getTime() > validity) {
+      res.status(403).json([
+        {
+          type: "outgoing",
+          message: question,
+          serial,
+          sessionId: sessionId,
+        },
+        {
+          type: "incoming",
+          message: "Expired balance! Recharge again",
+          serial: serial + 1,
+          sessionId: sessionId,
+        },
+      ]);
+      return;
+    }
+  }
+  // rate of the token 
+  const aiReadCost = .0015;
+  const aiWriteCost = .002;
 
   // generate the response
 
@@ -61,8 +111,18 @@ const generateResponse = asyncHandler(async (req, res) => {
   console.log(response.data.choices[0].message.content, "response");
   console.log("Token usage:", response.data.usage);
   const totalCost =
-    response.data.usage.prompt_tokens * 0.0015 +
-    response.data.usage.completion_tokens * 0.002;
+    (response.data.usage.prompt_tokens / 1000) * aiReadCost +
+    (response.data.usage.completion_tokens / 1000) * aiWriteCost;
+  console.log("Total Cost: " + " "+totalCost);
+
+  // sessionExists.sessionCost;
+  // update value of sessionCost
+  // code here for daily cost
+
+  sessionExists.sessionCost += totalCost;
+  await sessionExists.save();
+  transaction[0].currentBalance -= totalCost;
+  await transaction[0].save();
 
   // Extract the title from the response
   let title = "";
@@ -83,7 +143,7 @@ const generateResponse = asyncHandler(async (req, res) => {
         sessionTitle: title,
       }
     );
-  }
+  };
 
   // push the user's prompt to the session's message array
 
@@ -128,6 +188,7 @@ const generateResponse = asyncHandler(async (req, res) => {
       serial,
       sessionId: sessionId,
       tokenUsage: response.data.usage.prompt_tokens,
+      cost: (response.data.usage.prompt_tokens / 1000) * aiReadCost,
       //if serial is greater than 3, then send the title
       ...(serial < 3 && { title }),
     },
@@ -137,13 +198,14 @@ const generateResponse = asyncHandler(async (req, res) => {
       serial: serial + 1,
       sessionId: sessionId,
       tokenUsage: response.data.usage.completion_tokens,
+      cost: (response.data.usage.completion_tokens / 1000) * aiWriteCost,
       ...(serial < 3 && { title }),
     },
   ]);
 });
 
 const generateSuggestions = asyncHandler(async (req, res) => {
-  const { message, sessionId } = req.body;
+  const { message, sessionId , uid } = req.body;
 
   if (!message) {
     res.status(400).json({
@@ -178,9 +240,26 @@ ${message}
   console.log(response.data.choices[0].message.content, "response");
   console.log("Token usage:", response.data.usage);
 
+    // rate of the token 
+  const aiReadCost = .0015;
+  const aiWriteCost = .002;
+
   const totalCost =
-    response.data.usage.prompt_tokens * 0.0015 +
-    response.data.usage.completion_tokens * 0.002;
+    (response.data.usage.prompt_tokens / 1000) * aiReadCost +
+    (response.data.usage.completion_tokens / 1000) * aiWriteCost;
+  console.log("Total Cost: " + " "+totalCost);
+
+  // sessionExists.sessionCost;
+  // update value of sessionCost
+  // code here for daily cost
+  const sessionExists = await Session.findOne({ sessionId });
+  sessionExists.sessionCost += totalCost;
+  await sessionExists.save();
+  const transaction = await Transaction.find({ uid }).select(
+    "-dailyUsed -transactions"
+  );
+  transaction[0].currentBalance -= totalCost;
+  await transaction[0].save();
 
   res.status(200).json({
     message: response.data.choices[0].message.content,
