@@ -32,9 +32,9 @@ const generateResponse = asyncHandler(async (req, res) => {
   const transaction = await Transaction.find({ uid }).select(
     "-dailyUsed -transactions"
   );
-  const currentBalance = transaction[0].currentBalance;
-  const validity = transaction[0].validity;
-  if (currentBalance < 0.006) {
+  const currentBalance = transaction[0]?.currentBalance;
+  const validity = transaction[0]?.validity;
+  if (currentBalance < 0.006 || !currentBalance) {
     res.status(403).json([
       {
         type: "outgoing",
@@ -74,9 +74,9 @@ const generateResponse = asyncHandler(async (req, res) => {
       return;
     }
   }
-  // rate of the token 
-  const aiReadCost = .0015;
-  const aiWriteCost = .002;
+  // rate of the token
+  const aiReadCost = 0.0015;
+  const aiWriteCost = 0.002;
 
   // generate the response
 
@@ -113,7 +113,7 @@ const generateResponse = asyncHandler(async (req, res) => {
   const totalCost =
     (response.data.usage.prompt_tokens / 1000) * aiReadCost +
     (response.data.usage.completion_tokens / 1000) * aiWriteCost;
-  console.log("Total Cost: " + " "+totalCost);
+  console.log("Total Cost: " + " " + totalCost);
 
   // sessionExists.sessionCost;
   // update value of sessionCost
@@ -143,7 +143,7 @@ const generateResponse = asyncHandler(async (req, res) => {
         sessionTitle: title,
       }
     );
-  };
+  }
 
   // push the user's prompt to the session's message array
 
@@ -205,7 +205,7 @@ const generateResponse = asyncHandler(async (req, res) => {
 });
 
 const generateSuggestions = asyncHandler(async (req, res) => {
-  const { message, sessionId , uid } = req.body;
+  const { message, sessionId, uid } = req.body;
 
   if (!message) {
     res.status(400).json({
@@ -240,14 +240,14 @@ ${message}
   console.log(response.data.choices[0].message.content, "response");
   console.log("Token usage:", response.data.usage);
 
-    // rate of the token 
-  const aiReadCost = .0015;
-  const aiWriteCost = .002;
+  // rate of the token
+  const aiReadCost = 0.0015;
+  const aiWriteCost = 0.002;
 
   const totalCost =
     (response.data.usage.prompt_tokens / 1000) * aiReadCost +
     (response.data.usage.completion_tokens / 1000) * aiWriteCost;
-  console.log("Total Cost: " + " "+totalCost);
+  console.log("Total Cost: " + " " + totalCost);
 
   // sessionExists.sessionCost;
   // update value of sessionCost
