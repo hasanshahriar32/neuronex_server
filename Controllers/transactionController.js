@@ -5,7 +5,7 @@ const allTransaction = async (req, res) => {
   const { uid } = req.body;
   const transaction = await Transaction.find({ uid })
     .select("-dailyUsed")
-    .sort({ createdAt: -1 });
+    .sort({ "transactions.createdAt": -1 });
 
   res.send(transaction);
 };
