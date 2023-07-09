@@ -1,8 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const Package = require("../Model/packageModel");
+const bcrypt = require("bcryptjs");
+const Admin = require("../Model/adminModel");
 
 const createPackage = asyncHandler(async (req, res) => {
-  const { plan, price, validity, estimatedGeneration , profit } = req.body;
+  const { plan, price, validity, estimatedGeneration, profit } = req.body;
   console.log(req.body);
   const packageExists = await Package.findOne({ price });
   if (packageExists) {
@@ -35,8 +37,18 @@ const createPackage = asyncHandler(async (req, res) => {
   }
 });
 const updatePackage = async (req, res) => {
+  const adminterminator = req.params.id;
   const updatedValue = req.body;
   const filter = { _id: updatedValue._id };
+  const user = await Admin.findById(adminterminator);
+  console.log("user before password update:", user);
+
+  // Compare the current password entered by the user with the encrypted password in the database
+  const isMatch = await bcrypt.compare(updatedValue.password, user.password);
+
+  if (!isMatch) {
+    return res.status(403).json({ msg: "Invalid credentials" });
+  }
   const package = await Package.findOneAndUpdate(filter, updatedValue, {
     new: true,
   });
