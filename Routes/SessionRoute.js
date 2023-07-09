@@ -16,6 +16,7 @@ router.post("/favorite", favoriteSession);
 router.post("/single", singleSession);
 router.post("/favorite/switch", makeFavorite);
 router.post("/", generateSession);
-router.delete("/:id", protect, deleteSession);
+// router.delete("/:id", protect, deleteSession);
+router.delete("/:id", deleteSession);
 
 module.exports = router;
