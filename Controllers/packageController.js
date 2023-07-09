@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Package = require("../Model/packageModel");
 
 const createPackage = asyncHandler(async (req, res) => {
-  const { plan, price, validity, estimatedGeneration } = req.body;
+  const { plan, price, validity, estimatedGeneration , profit } = req.body;
   console.log(req.body);
   const packageExists = await Package.findOne({ price });
   if (packageExists) {
@@ -16,6 +16,7 @@ const createPackage = asyncHandler(async (req, res) => {
   const package = await Package.create({
     plan,
     price,
+    profit,
     validity,
     estimatedGeneration,
   });
@@ -24,6 +25,7 @@ const createPackage = asyncHandler(async (req, res) => {
       _id: package._id,
       plan: package.plan,
       price: package.price,
+      profit: package.profit,
       validity: package.validity,
       estimatedGeneration: package.estimatedGeneration,
     });

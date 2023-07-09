@@ -29,9 +29,9 @@ async function main() {
 }
 
 // routes start
-app.get("/", (req, res) => {
-  res.send(`neuronex is running on ${port}. documentation is at /api-docs`);
-});
+// app.get("/", (req, res) => {
+//   res.send(`neuronex is running on ${port}. documentation is at /api-docs`);
+// });
 app.use("/user", UserRoute);
 app.use("/session", SessionRoute);
 app.use("/generate", PromptRoute);
@@ -40,6 +40,7 @@ app.use("/package", PackageRoute);
 app.use("/payment", PaymentRoute);
 app.use("/transaction", transactionRoute);
 app.use("/api-docs", swaggerServe, swaggerSetup);
+app.use("/", swaggerServe, swaggerSetup);
 
 // routes end
 
