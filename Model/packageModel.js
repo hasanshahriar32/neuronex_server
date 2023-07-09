@@ -10,6 +10,7 @@ const priceSchema = mongoose.Schema(
       required: true,
     },
     validity: { type: Number, trim: true, required: true },
+    profit: {type: Number , trim: true, default: 0},
   },
   {
     timestamps: true,

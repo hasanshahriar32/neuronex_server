@@ -32,7 +32,14 @@ const createPackage = asyncHandler(async (req, res) => {
     throw new Error("Invalid package data");
   }
 });
-
+const updatePackage = async (req, res) => {
+  const updatedValue = req.body;
+  const filter = { _id: updatedValue._id };
+  const package = await Package.findOneAndUpdate(filter, updatedValue, {
+    new: true,
+  });
+  res.send(package);
+};
 const allPackage = async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : 1;
   const limit = req.query.limit ? parseInt(req.query.limit) : 50;
@@ -43,7 +50,7 @@ const allPackage = async (req, res) => {
 };
 
 const deletePackage = async (req, res) => {
-  const id = req.params.id;
+  const { id } = req.body;
   const package = await Package.deleteOne({ _id: id });
   res.send(package);
 };
@@ -52,4 +59,5 @@ module.exports = {
   createPackage,
   allPackage,
   deletePackage,
+  updatePackage,
 };
