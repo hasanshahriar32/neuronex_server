@@ -33,19 +33,19 @@ const createAi = asyncHandler(async (req, res) => {
   }
 });
 const updateAi = async (req, res) => {
-  const adminterminator = req.params.id;
-  const Ai = req.body;
-  const filter = { _id: Ai._id };
-  const user = await Admin.findById(adminterminator);
+  const aiManager = req.params.id;
+  const config = req.body;
+  const filter = { _id: config._id };
+  const user = await Admin.findById(aiManager);
   console.log("user before password update:", user);
 
   // Compare the current password entered by the user with the encrypted password in the database
-  const isMatch = await bcrypt.compare(Ai.password, user.password);
+  const isMatch = await bcrypt.compare(config.password, user.password);
 
   if (!isMatch) {
     return res.status(403).json({ msg: "Invalid credentials" });
   }
-  const ai = await Ai.findOneAndUpdate(filter, Ai, {
+  const ai = await Ai.findOneAndUpdate(filter, config, {
     new: true,
   });
   res.send(ai);
