@@ -120,12 +120,13 @@ const resolveIntent = asyncHandler(async (req, res) => {
 
   // Create a PaymentIntent with the order amount and currency
   if (package?._id) {
+    const charge = package?.profit || 0;
     const payment = await Payment.create({
       uid,
       paymentID,
       packageID: _id,
       plan: package?.plan,
-      price: package?.price,
+      price: package?.price - charge,
       estimatedGeneration: package?.estimatedGeneration,
       validity: package?.validity,
       status: "Confirmed",
@@ -218,6 +219,5 @@ const resolveIntent = asyncHandler(async (req, res) => {
     throw new Error("Invalid package data");
   }
 });
-
 
 module.exports = { createIntent, resolveIntent };
