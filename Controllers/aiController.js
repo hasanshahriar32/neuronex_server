@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const Admin = require("../Model/adminModel");
 
 const createAi = asyncHandler(async (req, res) => {
-  const { initBalance, outPrice, inPrice } = req.body;
+  const { initBalance, outPrice, inPrice, initDuration } = req.body;
   console.log(req.body);
   const aiExists = await Ai.findOne({ initBalance });
   if (aiExists) {
@@ -17,6 +17,7 @@ const createAi = asyncHandler(async (req, res) => {
   }
   const ai = await Ai.create({
     initBalance,
+    initDuration,
     outPrice,
     inPrice,
   });
@@ -24,6 +25,7 @@ const createAi = asyncHandler(async (req, res) => {
     res.status(201).json({
       _id: ai._id,
       initBalance: ai.initBalance,
+      initDuration: ai.initDuration,
       outPrice: ai.outPrice,
       inPrice: ai.inPrice,
     });
