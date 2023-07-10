@@ -116,10 +116,23 @@ const makeFavorite = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteSession = asyncHandler(async (req, res) => {
+  const sessionDetail = req.body;
+  const sessionId = sessionDetail?.sessionId;
+  const session = await Session.findOneAndDelete({ sessionId });
+  if (session) {
+    res.status(201).send(session);
+  } else {
+    res.status(400);
+    throw new Error("Invalid session data");
+  }
+});
+
 module.exports = {
   generateSession,
   allSession,
   favoriteSession,
   singleSession,
   makeFavorite,
+  deleteSession,
 };

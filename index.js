@@ -10,6 +10,7 @@ const PromptRoute = require("./Routes/PromptRoute");
 const PackageRoute = require("./Routes/PackageRoute");
 const transactionRoute = require("./Routes/TransactionRoute");
 const AdminRoute = require("./Routes/AdminRoute");
+const AiRoute = require("./Routes/AiRoute");
 const PaymentRoute = require("./Routes/PaymentRoute");
 const { notFound, errorHandler } = require("./MiddleWare/errMiddleWare");
 const { swaggerServe, swaggerSetup } = require("./Documentation/specs.js");
@@ -29,17 +30,19 @@ async function main() {
 }
 
 // routes start
-app.get("/", (req, res) => {
-  res.send(`neuronex is running on ${port}. documentation is at /api-docs`);
-});
+// app.get("/", (req, res) => {
+//   res.send(`neuronex is running on ${port}. documentation is at /api-docs`);
+// });
 app.use("/user", UserRoute);
 app.use("/session", SessionRoute);
 app.use("/generate", PromptRoute);
 app.use("/admin", AdminRoute);
+app.use("/ai", AiRoute);
 app.use("/package", PackageRoute);
 app.use("/payment", PaymentRoute);
 app.use("/transaction", transactionRoute);
 app.use("/api-docs", swaggerServe, swaggerSetup);
+app.use("/", swaggerServe, swaggerSetup);
 
 // routes end
 

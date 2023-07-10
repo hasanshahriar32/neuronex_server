@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { Configuration, OpenAIApi } = require("openai");
 const Session = require("../../Model/sessionModel");
 const Transaction = require("../../Model/transactionModel");
+const Ai = require("../../Model/aiModel");
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -32,9 +33,9 @@ const generateResponse = asyncHandler(async (req, res) => {
   const transaction = await Transaction.find({ uid }).select(
     "-dailyUsed -transactions"
   );
-  const currentBalance = transaction[0].currentBalance;
-  const validity = transaction[0].validity;
-  if (currentBalance < 0.006) {
+  const currentBalance = transaction[0]?.currentBalance;
+  const validity = transaction[0]?.validity;
+  if (currentBalance < 0.006 || !currentBalance) {
     res.status(403).json([
       {
         type: "outgoing",
@@ -74,9 +75,10 @@ const generateResponse = asyncHandler(async (req, res) => {
       return;
     }
   }
-  // rate of the token 
-  const aiReadCost = .0015;
-  const aiWriteCost = .002;
+  // rate of the token
+  const aiExists = await Ai.find();
+  const aiReadCost = aiExists[0].inPrice;
+  const aiWriteCost = aiExists[0].outPrice;
 
   // generate the response
 
@@ -113,7 +115,7 @@ const generateResponse = asyncHandler(async (req, res) => {
   const totalCost =
     (response.data.usage.prompt_tokens / 1000) * aiReadCost +
     (response.data.usage.completion_tokens / 1000) * aiWriteCost;
-  console.log("Total Cost: " + " "+totalCost);
+  console.log("Total Cost: " + " " + totalCost);
 
   // sessionExists.sessionCost;
   // update value of sessionCost
@@ -143,7 +145,7 @@ const generateResponse = asyncHandler(async (req, res) => {
         sessionTitle: title,
       }
     );
-  };
+  }
 
   // push the user's prompt to the session's message array
 
@@ -205,13 +207,39 @@ const generateResponse = asyncHandler(async (req, res) => {
 });
 
 const generateSuggestions = asyncHandler(async (req, res) => {
-  const { message, sessionId , uid } = req.body;
+  const { message, sessionId, uid } = req.body;
 
   if (!message) {
     res.status(400).json({
       error: "Message is required.",
     });
     return;
+  }
+
+  const transaction = await Transaction.find({ uid }).select(
+    "-dailyUsed -transactions"
+  );
+  const currentBalance = transaction[0]?.currentBalance;
+  const validity = transaction[0]?.validity;
+  if (currentBalance < 0.006 || !currentBalance) {
+    res.status(400).json({
+      message: "Can't load suggestion due to low balance 😢",
+      sessionId,
+    });
+    return;
+  }
+  if (currentBalance > 0.006) {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0); // Set today's time to 00:00:00 UTC
+
+    const newValidity = new Date(today.getTime());
+    if (newValidity.getTime() > validity) {
+      res.status(400).json({
+        message: "Can't load suggestion due to expired validity 😢",
+        sessionId,
+      });
+      return;
+    }
   }
 
   // const formattedMessage = message.replace(/\n/g, "");
@@ -240,14 +268,15 @@ ${message}
   console.log(response.data.choices[0].message.content, "response");
   console.log("Token usage:", response.data.usage);
 
-    // rate of the token 
-  const aiReadCost = .0015;
-  const aiWriteCost = .002;
+  // rate of the token
+  const aiExists = await Ai.find();
+  const aiReadCost = aiExists[0].inPrice;
+  const aiWriteCost = aiExists[0].outPrice;
 
   const totalCost =
     (response.data.usage.prompt_tokens / 1000) * aiReadCost +
     (response.data.usage.completion_tokens / 1000) * aiWriteCost;
-  console.log("Total Cost: " + " "+totalCost);
+  console.log("Total Cost: " + " " + totalCost);
 
   // sessionExists.sessionCost;
   // update value of sessionCost
@@ -255,9 +284,7 @@ ${message}
   const sessionExists = await Session.findOne({ sessionId });
   sessionExists.sessionCost += totalCost;
   await sessionExists.save();
-  const transaction = await Transaction.find({ uid }).select(
-    "-dailyUsed -transactions"
-  );
+  
   transaction[0].currentBalance -= totalCost;
   await transaction[0].save();
 
