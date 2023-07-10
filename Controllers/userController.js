@@ -2,6 +2,8 @@
 const User = require("../Model/userModel");
 const generateToken = require("../Config/generateToken");
 const asyncHandler = require("express-async-handler");
+const Ai = require("../Model/aiModel");
+const Transaction = require("../Model/transactionModel");
 
 const createUser = asyncHandler(async (req, res) => {
   const { name, email, uid, verified, pic, userAbout } = req.body;
@@ -25,6 +27,30 @@ const createUser = asyncHandler(async (req, res) => {
     pic,
     userAbout,
   });
+
+  // give custom balance to user account
+  const aiExists = await Ai.find();
+  const initBalance = aiExists[0].initBalance;
+  const initDuration = aiExists[0].initDuration;
+
+  const transactionModelExists = await Transaction.findOne({ uid });
+  if(!transactionModelExists){
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0); // Set today's time to 00:00:00 UTC
+
+        const validity = new Date(
+          today.getTime() + initDuration * 24 * 60 * 60 * 1000
+        ); // Convert payment validity to milliseconds
+
+        const transacModel = await Transaction.create({
+          uid,
+          transactions: [],
+          currentBalance: initBalance,
+          validity,
+          dailyUsed: [],
+        });
+      }
+
   if (user) {
     res.status(201).json({
       _id: user._id,
