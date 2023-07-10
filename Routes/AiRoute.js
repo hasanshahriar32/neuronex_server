@@ -4,7 +4,7 @@ const { allAi, createAi, updateAi } = require("../Controllers/aiController");
 const router = express.Router();
 
 router.get("/all", allAi);
-router.post("/:id", adminProtect, createAi);
+// router.post("/:id", adminProtect, createAi);
 router.patch("/:id", adminProtect, updateAi);
 
 module.exports = router;

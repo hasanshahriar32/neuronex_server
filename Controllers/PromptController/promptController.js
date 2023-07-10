@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { Configuration, OpenAIApi } = require("openai");
 const Session = require("../../Model/sessionModel");
 const Transaction = require("../../Model/transactionModel");
+const Ai = require("../../Model/aiModel");
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -75,8 +76,9 @@ const generateResponse = asyncHandler(async (req, res) => {
     }
   }
   // rate of the token
-  const aiReadCost = 0.0015;
-  const aiWriteCost = 0.002;
+  const aiExists = await Ai.find();
+  const aiReadCost = aiExists[0].inPrice;
+  const aiWriteCost = aiExists[0].outPrice;
 
   // generate the response
 
@@ -241,8 +243,9 @@ ${message}
   console.log("Token usage:", response.data.usage);
 
   // rate of the token
-  const aiReadCost = 0.0015;
-  const aiWriteCost = 0.002;
+  const aiExists = await Ai.find();
+  const aiReadCost = aiExists[0].inPrice;
+  const aiWriteCost = aiExists[0].outPrice;
 
   const totalCost =
     (response.data.usage.prompt_tokens / 1000) * aiReadCost +
