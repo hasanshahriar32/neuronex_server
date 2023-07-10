@@ -216,6 +216,32 @@ const generateSuggestions = asyncHandler(async (req, res) => {
     return;
   }
 
+  const transaction = await Transaction.find({ uid }).select(
+    "-dailyUsed -transactions"
+  );
+  const currentBalance = transaction[0]?.currentBalance;
+  const validity = transaction[0]?.validity;
+  if (currentBalance < 0.006 || !currentBalance) {
+    res.status(400).json({
+      message: "Can't load suggestion due to low balance 😢",
+      sessionId,
+    });
+    return;
+  }
+  if (currentBalance > 0.006) {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0); // Set today's time to 00:00:00 UTC
+
+    const newValidity = new Date(today.getTime());
+    if (newValidity.getTime() > validity) {
+      res.status(400).json({
+        message: "Can't load suggestion due to expired validity 😢",
+        sessionId,
+      });
+      return;
+    }
+  }
+
   // const formattedMessage = message.replace(/\n/g, "");
 
   const response = await openai.createChatCompletion({
@@ -258,9 +284,7 @@ ${message}
   const sessionExists = await Session.findOne({ sessionId });
   sessionExists.sessionCost += totalCost;
   await sessionExists.save();
-  const transaction = await Transaction.find({ uid }).select(
-    "-dailyUsed -transactions"
-  );
+  
   transaction[0].currentBalance -= totalCost;
   await transaction[0].save();
 
