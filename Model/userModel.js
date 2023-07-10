@@ -5,7 +5,7 @@ const userSchema = mongoose.Schema(
     email: { type: String, trim: true },
     uid: { type: String, trim: true, required: true, unique: true },
     verified: { type: Boolean, trim: true },
-    userAbout: { type: String, enum: ["admin", "user"] },
+    userAbout: { type: String, trim: true },
     pic: {
       type: String,
       default:
