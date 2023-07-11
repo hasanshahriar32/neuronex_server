@@ -222,7 +222,7 @@ const generateSuggestions = asyncHandler(async (req, res) => {
   const currentBalance = transaction[0]?.currentBalance;
   const validity = transaction[0]?.validity;
   if (currentBalance < 0.006 || !currentBalance) {
-    res.status(400).json({
+    res.status(200).json({
       message: "How to upgrade plan?\n",
       sessionId,
       tokenUsage: 0,
@@ -236,7 +236,7 @@ const generateSuggestions = asyncHandler(async (req, res) => {
 
     const newValidity = new Date(today.getTime());
     if (newValidity.getTime() > validity) {
-      res.status(400).json({
+      res.status(200).json({
         message: "How to update validity?\n",
         sessionId,
         tokenUsage: 0,
