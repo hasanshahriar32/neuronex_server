@@ -263,10 +263,11 @@ const generateResponse = asyncHandler(async (req, res) => {
   } catch (error) {
     // Handle the OpenAI API key error
     console.log("OpenAI API error:", error);
-    res.status(403).json([
+    res.status(200).json([
       {
         type: "incoming",
-        message: "Error Occured! \n\n Possible Fixes:\n -OpenAI API key is invalid or not available\n -Exceeded text size\n -Server runtime error (COMMON FOR VERCEL)\nContact Admin!",
+        message:
+          "Error Occurred! \n\n Possible Fixes:\n -OpenAI API key is invalid or not available\n -Exceeded text size\n -Server runtime error (COMMON FOR VERCEL)\nContact Admin!",
       },
     ]);
   }
