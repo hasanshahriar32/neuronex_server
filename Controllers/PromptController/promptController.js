@@ -36,21 +36,25 @@ const generateResponse = asyncHandler(async (req, res) => {
   const currentBalance = transaction[0]?.currentBalance;
   const validity = transaction[0]?.validity;
   if (currentBalance < 0.006 || !currentBalance) {
-    if(question === "How to upgrade plan?" || "How to update validity?"){
+    if (
+      question === "How to upgrade plan?" ||
+      question === "How to update validity?"
+    ) {
       res.status(403).json([
-      {
-        type: "outgoing",
-        message: question,
-        serial,
-        sessionId: sessionId,
-      },
-      {
-        type: "incoming",
-        message: "Go to profile. Look for Make Payment section. From there, purchase your desired plan.",
-        serial: serial + 1,
-        sessionId: sessionId,
-      },
-    ]);
+        {
+          type: "outgoing",
+          message: question,
+          serial,
+          sessionId: sessionId,
+        },
+        {
+          type: "incoming",
+          message:
+            "Go to profile. Look for Make Payment section. From there, purchase your desired plan.",
+          serial: serial + 1,
+          sessionId: sessionId,
+        },
+      ]);
       return;
     }
     res.status(403).json([
@@ -75,23 +79,27 @@ const generateResponse = asyncHandler(async (req, res) => {
 
     const newValidity = new Date(today.getTime());
     if (newValidity.getTime() > validity) {
-      if(question === "How to upgrade plan?" || "How to update validity?"){
-      res.status(403).json([
-      {
-        type: "outgoing",
-        message: question,
-        serial,
-        sessionId: sessionId,
-      },
-      {
-        type: "incoming",
-        message: "Go to profile. Look for Make Payment section. From there, purchase your desired plan.",
-        serial: serial + 1,
-        sessionId: sessionId,
-      },
-    ]);
-      return;
-    }
+      if (
+        question === "How to upgrade plan?" ||
+        question === "How to update validity?"
+      ) {
+        res.status(403).json([
+          {
+            type: "outgoing",
+            message: question,
+            serial,
+            sessionId: sessionId,
+          },
+          {
+            type: "incoming",
+            message:
+              "Go to profile. Look for Make Payment section. From there, purchase your desired plan.",
+            serial: serial + 1,
+            sessionId: sessionId,
+          },
+        ]);
+        return;
+      }
       res.status(403).json([
         {
           type: "outgoing",
