@@ -223,8 +223,10 @@ const generateSuggestions = asyncHandler(async (req, res) => {
   const validity = transaction[0]?.validity;
   if (currentBalance < 0.006 || !currentBalance) {
     res.status(400).json({
-      message: "Can't load suggestion due to low balance 😢",
+      message: "How to upgrade plan?\n",
       sessionId,
+      tokenUsage: 0,
+      totalCost: 0,
     });
     return;
   }
@@ -235,8 +237,10 @@ const generateSuggestions = asyncHandler(async (req, res) => {
     const newValidity = new Date(today.getTime());
     if (newValidity.getTime() > validity) {
       res.status(400).json({
-        message: "Can't load suggestion due to expired validity 😢",
+        message: "How to update validity?\n",
         sessionId,
+        tokenUsage: 0,
+        totalCost: 0,
       });
       return;
     }
@@ -284,7 +288,7 @@ ${message}
   const sessionExists = await Session.findOne({ sessionId });
   sessionExists.sessionCost += totalCost;
   await sessionExists.save();
-  
+
   transaction[0].currentBalance -= totalCost;
   await transaction[0].save();
 
