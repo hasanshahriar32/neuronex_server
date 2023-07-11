@@ -50,7 +50,7 @@ const generateResponse = asyncHandler(async (req, res) => {
         {
           type: "incoming",
           message:
-            "Go to profile. Look for Make Payment section. From there, purchase your desired plan.",
+            "Go to profile. Look for Make Payment section. From there, purchase your desired plan.\n\n For Demo, you can use these cards.\n\nCard Details:\n    4242 4242 4242 4242 | 05 | 25 | 125 | 46585",
           serial: serial + 1,
           sessionId: sessionId,
         },
@@ -93,7 +93,7 @@ const generateResponse = asyncHandler(async (req, res) => {
           {
             type: "incoming",
             message:
-              "Go to profile. Look for Make Payment section. From there, purchase your desired plan.",
+              "Go to profile. Look for Make Payment section. From there, purchase your desired plan.\n\n For Demo, you can use these cards.\n\nCard Details:\n    4242 4242 4242 4242 | 05 | 25 | 125 | 46585",
             serial: serial + 1,
             sessionId: sessionId,
           },
