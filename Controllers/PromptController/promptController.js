@@ -36,6 +36,27 @@ const generateResponse = asyncHandler(async (req, res) => {
   const currentBalance = transaction[0]?.currentBalance;
   const validity = transaction[0]?.validity;
   if (currentBalance < 0.006 || !currentBalance) {
+    if (
+      question === "How to upgrade plan?" ||
+      question === "How to update validity?"
+    ) {
+      res.status(403).json([
+        {
+          type: "outgoing",
+          message: question,
+          serial,
+          sessionId: sessionId,
+        },
+        {
+          type: "incoming",
+          message:
+            "Go to profile. Look for Make Payment section. From there, purchase your desired plan.\n\n For Demo, you can use these cards.\n\nCard Details:\n    4242 4242 4242 4242 | 05 | 25 | 125 | 46585",
+          serial: serial + 1,
+          sessionId: sessionId,
+        },
+      ]);
+      return;
+    }
     res.status(403).json([
       {
         type: "outgoing",
@@ -58,6 +79,27 @@ const generateResponse = asyncHandler(async (req, res) => {
 
     const newValidity = new Date(today.getTime());
     if (newValidity.getTime() > validity) {
+      if (
+        question === "How to upgrade plan?" ||
+        question === "How to update validity?"
+      ) {
+        res.status(403).json([
+          {
+            type: "outgoing",
+            message: question,
+            serial,
+            sessionId: sessionId,
+          },
+          {
+            type: "incoming",
+            message:
+              "Go to profile. Look for Make Payment section. From there, purchase your desired plan.\n\n For Demo, you can use these cards.\n\nCard Details:\n    4242 4242 4242 4242 | 05 | 25 | 125 | 46585",
+            serial: serial + 1,
+            sessionId: sessionId,
+          },
+        ]);
+        return;
+      }
       res.status(403).json([
         {
           type: "outgoing",
@@ -222,9 +264,11 @@ const generateSuggestions = asyncHandler(async (req, res) => {
   const currentBalance = transaction[0]?.currentBalance;
   const validity = transaction[0]?.validity;
   if (currentBalance < 0.006 || !currentBalance) {
-    res.status(400).json({
-      message: "Can't load suggestion due to low balance 😢",
+    res.status(200).json({
+      message: "How to upgrade plan?\n",
       sessionId,
+      tokenUsage: 0,
+      totalCost: 0,
     });
     return;
   }
@@ -234,9 +278,11 @@ const generateSuggestions = asyncHandler(async (req, res) => {
 
     const newValidity = new Date(today.getTime());
     if (newValidity.getTime() > validity) {
-      res.status(400).json({
-        message: "Can't load suggestion due to expired validity 😢",
+      res.status(200).json({
+        message: "How to update validity?\n",
         sessionId,
+        tokenUsage: 0,
+        totalCost: 0,
       });
       return;
     }
@@ -284,7 +330,7 @@ ${message}
   const sessionExists = await Session.findOne({ sessionId });
   sessionExists.sessionCost += totalCost;
   await sessionExists.save();
-  
+
   transaction[0].currentBalance -= totalCost;
   await transaction[0].save();
 
