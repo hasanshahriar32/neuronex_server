@@ -122,31 +122,45 @@ const generateResponse = asyncHandler(async (req, res) => {
     const aiReadCost = aiExists[0].inPrice;
     const aiWriteCost = aiExists[0].outPrice;
 
+    // load existing 2 messages to give better response
+    const existingMessages = sessionExists?.messages;
+    const latestIncomingMessages = existingMessages
+      .filter((message) => message?.type === "incoming")
+      .slice(-2);
+
+    const previousMessages = latestIncomingMessages?.map((message) => ({
+      role: "assistant",
+      content: message?.message,
+    }));
+
+    const messages = [
+      {
+        role: "system",
+        content: `focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Not mandatorily, if possible or necessary or required, provide additional resources to assist the student. (Links, youtube videos, wikipedia reference etc.) ${
+          serial < 3
+            ? "most importantly, give a suitable title named Title: at the beginning of response."
+            : ""
+        }`,
+      },
+      ...previousMessages, // Include the previous messages if there are 2 or more
+      // if you do not wanna include previous messages, then hide it
+      {
+        role: "user",
+        content: `
+    Subject: ${subjectSelection} ,
+    Prompt: ${question},
+    Assistance Level: ${assistanceLevel},
+    Additional Details: ${additionalInstruction}, 
+    `,
+      },
+    ];
+
     // generate the response
 
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
-
-      messages: [
-        {
-          role: "system",
-          content: `focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Not mandatorily, if possible or necessary or required, provide additional resources to assist the student. (Links, youtube videos, wikipedia reference etc.) ${
-            serial < 3
-              ? "most importantly, give a suitable title named Title: at the beginning of response."
-              : ""
-          }`,
-        },
-        {
-          role: "user",
-          content: `
-        Subject: ${subjectSelection} ,
-        Prompt: ${question},
-        Assistance Level: ${assistanceLevel},
-        Additional Details: ${additionalInstruction}, 
-        `,
-        },
-      ],
-      max_tokens: 800,
+      messages,
+      max_tokens: 1000,
       temperature: 0.5,
       presence_penalty: 0,
       frequency_penalty: 0,
