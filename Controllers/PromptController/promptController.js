@@ -10,75 +10,32 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const generateResponse = asyncHandler(async (req, res) => {
-  const userPrompt = req.body;
-  const {
-    subjectSelection,
-    question,
-    sessionId,
-    additionalInstruction,
-    assistanceLevel,
-    uid,
-  } = userPrompt;
-  const sessionExists = await Session.findOne({ sessionId });
-  if (!sessionExists) {
-    res.status(422).json({
-      error: "session doesn't exists",
-    });
-    throw new Error("Session doesn't  exists");
-    return;
-  }
-
-  // get the session's message array length
-  const serial = sessionExists.messages.length + 1;
-  const transaction = await Transaction.find({ uid }).select(
-    "-dailyUsed -transactions"
-  );
-  const currentBalance = transaction[0]?.currentBalance;
-  const validity = transaction[0]?.validity;
-  if (currentBalance < 0.006 || !currentBalance) {
-    if (
-      question === "How to upgrade plan?" ||
-      question === "How to update validity?"
-    ) {
-      res.status(403).json([
-        {
-          type: "outgoing",
-          message: question,
-          serial,
-          sessionId: sessionId,
-        },
-        {
-          type: "incoming",
-          message:
-            "Go to profile. Look for Make Payment section. From there, purchase your desired plan.\n\n For Demo, you can use these cards.\n\nCard Details:\n    4242 4242 4242 4242 | 05 | 25 | 125 | 46585",
-          serial: serial + 1,
-          sessionId: sessionId,
-        },
-      ]);
+  try {
+    const userPrompt = req.body;
+    const {
+      subjectSelection,
+      question,
+      sessionId,
+      additionalInstruction,
+      assistanceLevel,
+      uid,
+    } = userPrompt;
+    const sessionExists = await Session.findOne({ sessionId });
+    if (!sessionExists) {
+      res.status(422).json({
+        error: "session doesn't exists",
+      });
       return;
     }
-    res.status(403).json([
-      {
-        type: "outgoing",
-        message: question,
-        serial,
-        sessionId: sessionId,
-      },
-      {
-        type: "incoming",
-        message: "Low balance! Upgrade Plan",
-        serial: serial + 1,
-        sessionId: sessionId,
-      },
-    ]);
-    return;
-  }
-  if (currentBalance > 0.006) {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0); // Set today's time to 00:00:00 UTC
 
-    const newValidity = new Date(today.getTime());
-    if (newValidity.getTime() > validity) {
+    // get the session's message array length
+    const serial = sessionExists.messages.length + 1;
+    const transaction = await Transaction.find({ uid }).select(
+      "-dailyUsed -transactions"
+    );
+    const currentBalance = transaction[0]?.currentBalance;
+    const validity = transaction[0]?.validity;
+    if (currentBalance < 0.006 || !currentBalance) {
       if (
         question === "How to upgrade plan?" ||
         question === "How to update validity?"
@@ -109,143 +66,196 @@ const generateResponse = asyncHandler(async (req, res) => {
         },
         {
           type: "incoming",
-          message: "Expired balance! Recharge again",
+          message: "Low balance! Upgrade Plan",
           serial: serial + 1,
           sessionId: sessionId,
         },
       ]);
       return;
     }
-  }
-  // rate of the token
-  const aiExists = await Ai.find();
-  const aiReadCost = aiExists[0].inPrice;
-  const aiWriteCost = aiExists[0].outPrice;
+    if (currentBalance > 0.006) {
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0); // Set today's time to 00:00:00 UTC
 
-  // generate the response
+      const newValidity = new Date(today.getTime());
+      if (newValidity.getTime() > validity) {
+        if (
+          question === "How to upgrade plan?" ||
+          question === "How to update validity?"
+        ) {
+          res.status(403).json([
+            {
+              type: "outgoing",
+              message: question,
+              serial,
+              sessionId: sessionId,
+            },
+            {
+              type: "incoming",
+              message:
+                "Go to profile. Look for Make Payment section. From there, purchase your desired plan.\n\n For Demo, you can use these cards.\n\nCard Details:\n    4242 4242 4242 4242 | 05 | 25 | 125 | 46585",
+              serial: serial + 1,
+              sessionId: sessionId,
+            },
+          ]);
+          return;
+        }
+        res.status(403).json([
+          {
+            type: "outgoing",
+            message: question,
+            serial,
+            sessionId: sessionId,
+          },
+          {
+            type: "incoming",
+            message: "Expired balance! Recharge again",
+            serial: serial + 1,
+            sessionId: sessionId,
+          },
+        ]);
+        return;
+      }
+    }
+    // rate of the token
+    const aiExists = await Ai.find();
+    const aiReadCost = aiExists[0].inPrice;
+    const aiWriteCost = aiExists[0].outPrice;
 
-  const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    // generate the response
 
-    messages: [
-      {
-        role: "system",
-        content: `focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Not mandatorily, if possible or necessary or required, provide additional resources to assist the student. (Links, youtube videos, wikipedia reference etc.) ${
-          serial < 3
-            ? "most importantly, give a suitable title named Title: at the beginning of response."
-            : ""
-        }`,
-      },
-      {
-        role: "user",
-        content: `
-      Subject: ${subjectSelection} ,
-      Prompt: ${question},
-      Assistance Level: ${assistanceLevel},
-      Additional Details: ${additionalInstruction}, 
-      `,
-      },
-    ],
-    max_tokens: 800,
-    temperature: 0.5,
-    presence_penalty: 0,
-    frequency_penalty: 0,
-  });
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
 
-  console.log(response.data.choices[0].message.content, "response");
-  console.log("Token usage:", response.data.usage);
-  const totalCost =
-    (response.data.usage.prompt_tokens / 1000) * aiReadCost +
-    (response.data.usage.completion_tokens / 1000) * aiWriteCost;
-  console.log("Total Cost: " + " " + totalCost);
+      messages: [
+        {
+          role: "system",
+          content: `focus on responding to latest content!! Act as a teaching professional and analyze the question or topic and generate a comprehensive response to assist. Not mandatorily, if possible or necessary or required, provide additional resources to assist the student. (Links, youtube videos, wikipedia reference etc.) ${
+            serial < 3
+              ? "most importantly, give a suitable title named Title: at the beginning of response."
+              : ""
+          }`,
+        },
+        {
+          role: "user",
+          content: `
+        Subject: ${subjectSelection} ,
+        Prompt: ${question},
+        Assistance Level: ${assistanceLevel},
+        Additional Details: ${additionalInstruction}, 
+        `,
+        },
+      ],
+      max_tokens: 800,
+      temperature: 0.5,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+    });
 
-  // sessionExists.sessionCost;
-  // update value of sessionCost
-  // code here for daily cost
+    console.log(response.data.choices[0].message.content, "response");
+    console.log("Token usage:", response.data.usage);
+    const totalCost =
+      (response.data.usage.prompt_tokens / 1000) * aiReadCost +
+      (response.data.usage.completion_tokens / 1000) * aiWriteCost;
+    console.log("Total Cost: " + " " + totalCost);
 
-  sessionExists.sessionCost += totalCost;
-  await sessionExists.save();
-  transaction[0].currentBalance -= totalCost;
-  await transaction[0].save();
+    // sessionExists.sessionCost;
+    // update value of sessionCost
+    // code here for daily cost
 
-  // Extract the title from the response
-  let title = "";
-  const responseContent = response.data.choices[0].message.content;
-  const titleMatch = responseContent.match(/Title: ([^\n]+)/);
-  if (titleMatch) {
-    title = titleMatch[1];
-  }
+    sessionExists.sessionCost += totalCost;
+    await sessionExists.save();
+    transaction[0].currentBalance -= totalCost;
+    await transaction[0].save();
 
-  console.log(title, "title");
+    // Extract the title from the response
+    let title = "";
+    const responseContent = response.data.choices[0].message.content;
+    const titleMatch = responseContent.match(/Title: ([^\n]+)/);
+    if (titleMatch) {
+      title = titleMatch[1];
+    }
 
-  // if serial is less than 3, then set the title to Session model's sessionTitle
+    console.log(title, "title");
 
-  if (serial < 3 && title !== "") {
-    const sessionTitle = await Session.findOneAndUpdate(
+    // if serial is less than 3, then set the title to Session model's sessionTitle
+
+    if (serial < 3 && title !== "") {
+      const sessionTitle = await Session.findOneAndUpdate(
+        { sessionId },
+        {
+          sessionTitle: title,
+        }
+      );
+    }
+
+    // push the user's prompt to the session's message array
+
+    const incomingData = await Session.findOneAndUpdate(
       { sessionId },
       {
-        sessionTitle: title,
+        $push: {
+          messages: {
+            type: "outgoing",
+            message: question,
+            serial,
+            sessionId: sessionId,
+            tokenUsage: response.data.usage.prompt_tokens,
+          },
+        },
       }
     );
+
+    // push the response to the session's message array
+
+    const generatedData = await Session.findOneAndUpdate(
+      { sessionId },
+      {
+        $push: {
+          messages: {
+            type: "incoming",
+            message: response.data.choices[0].message.content,
+            serial: serial + 1,
+            sessionId: sessionId,
+            tokenUsage: response.data.usage.completion_tokens,
+          },
+        },
+      }
+    );
+
+    // send the response to the user
+
+    res.status(200).json([
+      {
+        type: "outgoing",
+        message: question,
+        serial,
+        sessionId: sessionId,
+        tokenUsage: response.data.usage.prompt_tokens,
+        cost: (response.data.usage.prompt_tokens / 1000) * aiReadCost,
+        //if serial is greater than 3, then send the title
+        ...(serial < 3 && { title }),
+      },
+      {
+        type: "incoming",
+        message: response.data.choices[0].message.content,
+        serial: serial + 1,
+        sessionId: sessionId,
+        tokenUsage: response.data.usage.completion_tokens,
+        cost: (response.data.usage.completion_tokens / 1000) * aiWriteCost,
+        ...(serial < 3 && { title }),
+      },
+    ]);
+  } catch (error) {
+    // Handle the OpenAI API key error
+    console.log("OpenAI API error:", error);
+    res.status(403).json([
+      {
+        type: "incoming",
+        message: "OpenAI API key is invalid or not available. Contact Admin!",
+      },
+    ]);
   }
-
-  // push the user's prompt to the session's message array
-
-  const incomingData = await Session.findOneAndUpdate(
-    { sessionId },
-    {
-      $push: {
-        messages: {
-          type: "outgoing",
-          message: question,
-          serial,
-          sessionId: sessionId,
-          tokenUsage: response.data.usage.prompt_tokens,
-        },
-      },
-    }
-  );
-
-  // push the response to the session's message array
-
-  const generatedData = await Session.findOneAndUpdate(
-    { sessionId },
-    {
-      $push: {
-        messages: {
-          type: "incoming",
-          message: response.data.choices[0].message.content,
-          serial: serial + 1,
-          sessionId: sessionId,
-          tokenUsage: response.data.usage.completion_tokens,
-        },
-      },
-    }
-  );
-
-  // send the response to the user
-
-  res.status(200).json([
-    {
-      type: "outgoing",
-      message: question,
-      serial,
-      sessionId: sessionId,
-      tokenUsage: response.data.usage.prompt_tokens,
-      cost: (response.data.usage.prompt_tokens / 1000) * aiReadCost,
-      //if serial is greater than 3, then send the title
-      ...(serial < 3 && { title }),
-    },
-    {
-      type: "incoming",
-      message: response.data.choices[0].message.content,
-      serial: serial + 1,
-      sessionId: sessionId,
-      tokenUsage: response.data.usage.completion_tokens,
-      cost: (response.data.usage.completion_tokens / 1000) * aiWriteCost,
-      ...(serial < 3 && { title }),
-    },
-  ]);
 });
 
 const generateSuggestions = asyncHandler(async (req, res) => {
