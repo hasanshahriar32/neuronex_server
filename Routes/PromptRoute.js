@@ -15,7 +15,7 @@ const { protect } = require("../MiddleWare/authMiddleWare");
 
 // const {} = require("../Controllers/userController");
 
-// router.post("/", generateResponse3);
+router.post("/test", generateResponse3);
 router.post("/prompt/:id", protect, generateResponse);
 router.post("/suggestions/:id", protect, generateSuggestions);
 // router.get("/test", generateTest);
